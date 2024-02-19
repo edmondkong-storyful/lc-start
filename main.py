@@ -2,11 +2,13 @@ from langchain_openai import ChatOpenAI
 from langchain.chains import LLMChain
 from langchain.prompts import MessagesPlaceholder, HumanMessagePromptTemplate, ChatPromptTemplate
 from langchain.memory import ConversationBufferMemory
+from langchain.callbacks.manager import CallbackManager
+from langchain.callbacks.streaming_stdout  import StreamingStdOutCallbackHandler
 from dotenv import load_dotenv
 
 load_dotenv()
 
-chat = ChatOpenAI()
+chat = ChatOpenAI(streaming=True, callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]))
 memory = ConversationBufferMemory(memory_key="messages", return_messages=True)
 prompt = ChatPromptTemplate(
     input_variables=["content", "messages"],
@@ -19,10 +21,11 @@ prompt = ChatPromptTemplate(
 chain = LLMChain(
     llm=chat,
     prompt=prompt,
-    memory=memory
+    memory=memory,
 )
 
 while True:
     content = input(">> ")
-    result = chain.invoke({"content": content})
-    print(result["text"])
+
+    chain.invoke({"content": content})
+    print()
